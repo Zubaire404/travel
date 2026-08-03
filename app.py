@@ -188,40 +188,6 @@ with t_col1:
     </div>
     """, unsafe_allow_html=True)
 
-# Sidebar
-with st.sidebar:
-    st.header("System Settings")
-    st.subheader("SMS Configuration")
-    sms_token = st.text_input(
-        "API Gateway Token",
-        type="password",
-        help="Leave blank to use Simulated Mode (Logs to console)."
-    )
-    if sms_token:
-        st.success("Real SMS Enabled")
-    else:
-        st.info("Simulated SMS Mode")
-        
-    st.divider()
-    st.markdown("**Overview**")
-    total_b = len(database.get_all_bookings())
-    st.metric("Total Bookings", total_b)
-    
-    st.divider()
-    st.subheader("💬 SMS Simulator Logs")
-    if not st.session_state.sms_logs:
-        st.write("No simulated messages sent yet.")
-    else:
-        for log in reversed(st.session_state.sms_logs[-5:]): # Show last 5
-            with st.popover(f"📱 View SMS: {log['phone']}", use_container_width=True):
-                st.markdown(f"""
-                <div style="width: 240px; height: 180px; background: #f0f2f5; border-radius: 20px; padding: 15px; border: 4px solid #333; margin: auto; box-shadow: 0 10px 15px rgba(0,0,0,0.2); overflow-y: auto;">
-                    <div style="text-align: center; font-size: 10px; color: #888; margin-bottom: 10px;">Today 10:41 AM</div>
-                    <div style="background: #dcf8c6; padding: 10px; border-radius: 10px 10px 0 10px; font-size: 12px; color: #000; float: right; max-width: 90%; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
-                        {log['message'].replace(chr(10), '<br>')}
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
 
 tab1, tab2 = st.tabs(["New Booking", "Booking History"])
 
@@ -730,3 +696,40 @@ with tab2:
             st.info("No refunds issued in this date range.")
     else:
         st.info("No transaction records found.")
+
+# ==========================================
+#   SIDEBAR (Rendered last for correct state updates)
+# ==========================================
+with st.sidebar:
+    st.header("System Settings")
+    st.subheader("SMS Configuration")
+    sms_token = st.text_input(
+        "API Gateway Token",
+        type="password",
+        help="Leave blank to use Simulated Mode (Logs to console)."
+    )
+    if sms_token:
+        st.success("Real SMS Enabled")
+    else:
+        st.info("Simulated SMS Mode")
+        
+    st.divider()
+    st.markdown("**Overview**")
+    total_b = len(database.get_all_bookings())
+    st.metric("Total Bookings", total_b)
+    
+    st.divider()
+    st.subheader("💬 SMS Simulator Logs")
+    if not st.session_state.sms_logs:
+        st.write("No simulated messages sent yet.")
+    else:
+        for log in reversed(st.session_state.sms_logs[-5:]): # Show last 5
+            with st.popover(f"📱 View SMS: {log['phone']}", use_container_width=True):
+                st.markdown(f"""
+                <div style="width: 240px; height: 180px; background: #f0f2f5; border-radius: 20px; padding: 15px; border: 4px solid #333; margin: auto; box-shadow: 0 10px 15px rgba(0,0,0,0.2); overflow-y: auto;">
+                    <div style="text-align: center; font-size: 10px; color: #888; margin-bottom: 10px;">Today 10:41 AM</div>
+                    <div style="background: #dcf8c6; padding: 10px; border-radius: 10px 10px 0 10px; font-size: 12px; color: #000; float: right; max-width: 90%; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                        {log['message'].replace(chr(10), '<br>')}
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
