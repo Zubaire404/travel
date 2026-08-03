@@ -213,14 +213,15 @@ with st.sidebar:
         st.write("No simulated messages sent yet.")
     else:
         for log in reversed(st.session_state.sms_logs[-5:]): # Show last 5
-            st.markdown(f"""
-            <div style="background: var(--secondary-background-color); padding: 10px; border-radius: 8px; font-size: 13px; border-left: 4px solid #22c55e; margin-bottom: 10px;">
-                <b style="color: #22c55e;">To: {log['phone']}</b><br>
-                <div style="margin-top: 5px; color: var(--text-color); opacity: 0.9;">
-                    {log['message'].replace(chr(10), '<br>')}
+            with st.popover(f"📱 View SMS: {log['phone']}", use_container_width=True):
+                st.markdown(f"""
+                <div style="width: 240px; height: 180px; background: #f0f2f5; border-radius: 20px; padding: 15px; border: 4px solid #333; margin: auto; box-shadow: 0 10px 15px rgba(0,0,0,0.2); overflow-y: auto;">
+                    <div style="text-align: center; font-size: 10px; color: #888; margin-bottom: 10px;">Today 10:41 AM</div>
+                    <div style="background: #dcf8c6; padding: 10px; border-radius: 10px 10px 0 10px; font-size: 12px; color: #000; float: right; max-width: 90%; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                        {log['message'].replace(chr(10), '<br>')}
+                    </div>
                 </div>
-            </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
 
 tab1, tab2 = st.tabs(["New Booking", "Booking History"])
 
