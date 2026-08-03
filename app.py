@@ -496,22 +496,34 @@ with tab1:
                         except Exception as e:
                             st.error(f"Transaction failed due to system error: {e}")
             
-            # Download buttons outside the form
+            # Download buttons and previews outside the form
             if st.session_state.get('latest_pdfs'):
-                st.markdown("### Download Tickets")
-                dl_cols = st.columns(min(len(st.session_state.latest_pdfs), 4))
+                st.markdown("### Generated Tickets")
                 for idx, pdf_path in enumerate(st.session_state.latest_pdfs):
-                    col = dl_cols[idx % len(dl_cols)]
                     if os.path.exists(pdf_path):
                         with open(pdf_path, "rb") as pdf_file:
-                            col.download_button(
-                                label=f"Download {os.path.basename(pdf_path).split('_')[0]}",
-                                data=pdf_file.read(),
-                                file_name=os.path.basename(pdf_path),
-                                mime='application/pdf',
-                                type="primary",
-                                key=f"dl_btn_{idx}"
-                            )
+                            pdf_bytes = pdf_file.read()
+                            
+                        ticket_name = os.path.basename(pdf_path).split('_')[0]
+                        with st.expander(f"🎫 {ticket_name} - Preview & Download", expanded=True):
+                            dl_col, prev_col = st.columns([1, 4])
+                            with dl_col:
+                                st.write("")
+                                st.write("")
+                                st.download_button(
+                                    label="📥 Download PDF",
+                                    data=pdf_bytes,
+                                    file_name=os.path.basename(pdf_path),
+                                    mime='application/pdf',
+                                    type="primary",
+                                    key=f"dl_btn_{idx}",
+                                    use_container_width=True
+                                )
+                            with prev_col:
+                                import base64
+                                base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
+                                pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="300" type="application/pdf"></iframe>'
+                                st.markdown(pdf_display, unsafe_allow_html=True)
 
 # ==========================================
 #   TAB 2: BOOKING HISTORY
