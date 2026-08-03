@@ -498,15 +498,28 @@ with tab1:
             
             # Download buttons and previews outside the form
             if st.session_state.get('latest_pdfs'):
-                st.markdown("### Generated Tickets")
+                st.markdown("### Generated Tickets & Notifications")
+                
+                # Fetch last booking details for previews
+                last_booking = None
+                if all_bookings := database.get_all_bookings():
+                    # Get the most recent booking that matches the phone number
+                    for b in all_bookings:
+                        if b['phone_number'] == st.session_state.get('customer_phone', ''):
+                            last_booking = b
+                            break
+                    if not last_booking:
+                        last_booking = all_bookings[0] # Fallback
+                
                 for idx, pdf_path in enumerate(st.session_state.latest_pdfs):
                     if os.path.exists(pdf_path):
                         with open(pdf_path, "rb") as pdf_file:
                             pdf_bytes = pdf_file.read()
                             
                         ticket_name = os.path.basename(pdf_path).split('_')[0]
-                        with st.expander(f"🎫 {ticket_name} - Preview & Download", expanded=True):
-                            dl_col, prev_col = st.columns([1, 4])
+                        with st.expander(f"🎫 {ticket_name} - Ticket & SMS Preview", expanded=True):
+                            dl_col, tkt_col, sms_col = st.columns([1, 2, 2])
+                            
                             with dl_col:
                                 st.write("")
                                 st.write("")
@@ -519,11 +532,33 @@ with tab1:
                                     key=f"dl_btn_{idx}",
                                     use_container_width=True
                                 )
-                            with prev_col:
-                                import base64
-                                base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
-                                pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="300" type="application/pdf"></iframe>'
-                                st.markdown(pdf_display, unsafe_allow_html=True)
+                                
+                            with tkt_col:
+                                # Safe visual ticket preview instead of failing iframe
+                                st.markdown(f"""
+                                <div style="background: white; padding: 15px; border-radius: 10px; border-left: 5px solid #2563eb; color: black; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                                    <h4 style="margin:0; color: #1e293b;">BOARDING PASS</h4>
+                                    <hr style="margin: 10px 0;">
+                                    <b>Ticket:</b> {ticket_name}<br>
+                                    <b>Passenger:</b> {last_booking['customer_name'] if last_booking else 'N/A'}<br>
+                                    <b>Route:</b> {last_booking['route'] if last_booking else 'N/A'}<br>
+                                    <b>Bus:</b> {last_booking['bus_name'] if last_booking else 'N/A'}<br>
+                                    <b>Seat:</b> <span style="color:red; font-weight:bold;">{last_booking['seat_number'] if last_booking else 'N/A'}</span><br>
+                                    <b>Departure:</b> {last_booking['travel_date'] if last_booking else 'N/A'} | {last_booking['departure_time'] if last_booking else 'N/A'}
+                                </div>
+                                """, unsafe_allow_html=True)
+                                
+                            with sms_col:
+                                # Fake Mobile Phone SMS Preview
+                                sms_text = f"Hello {last_booking['customer_name'] if last_booking else 'Passenger'}, your ticket is Confirmed!\\nTicket ID: {ticket_name}\\nBus: {last_booking['bus_name'] if last_booking else 'N/A'}\\nSeat: {last_booking['seat_number'] if last_booking else 'N/A'}\\nDate: {last_booking['travel_date'] if last_booking else 'N/A'} ({last_booking['departure_time'] if last_booking else 'N/A'})\\nFare: BDT {last_booking['price'] if last_booking else '0'}\\nThank you for choosing us!"
+                                st.markdown(f"""
+                                <div style="width: 260px; height: 180px; background: #f0f2f5; border-radius: 20px; padding: 15px; border: 4px solid #333; margin: auto; box-shadow: 0 10px 15px rgba(0,0,0,0.2); overflow-y: auto;">
+                                    <div style="text-align: center; font-size: 10px; color: #888; margin-bottom: 10px;">Today 10:41 AM</div>
+                                    <div style="background: #dcf8c6; padding: 10px; border-radius: 10px 10px 0 10px; font-size: 12px; color: #000; float: right; max-width: 90%; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                                        {sms_text.replace('\\n', '<br>')}
+                                    </div>
+                                </div>
+                                """, unsafe_allow_html=True)
 
 # ==========================================
 #   TAB 2: BOOKING HISTORY
