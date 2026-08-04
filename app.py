@@ -53,9 +53,12 @@ if 'is_dark_theme' not in st.session_state:
 if 'sms_logs' not in st.session_state:
     st.session_state.sms_logs = []
 
-st.set_page_config(page_title="Travel Agency Booking System", layout="wide")
+# MOBILE-FIRST: Use default centered layout, not wide
+st.set_page_config(page_title="Bus Booking", layout="centered", initial_sidebar_state="collapsed")
 
-# Custom Modern CSS
+# ==========================================
+#   MOBILE-FIRST CSS
+# ==========================================
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -64,76 +67,130 @@ st.markdown("""
         font-family: 'Inter', sans-serif;
     }
     
-    .header-container {
-        background-color: var(--secondary-background-color);
-        padding: 2rem;
-        border-radius: 8px;
-        color: var(--text-color);
-        margin-bottom: 2rem;
-        border: 1px solid var(--primary-color);
-        border-left: 6px solid var(--primary-color);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    /* Compact header */
+    .app-header {
+        padding: 1rem 1.25rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, var(--primary-color), #1e40af);
+        color: #ffffff;
+        text-align: center;
     }
-    
-    .header-container h1 {
+    .app-header h2 {
         margin: 0;
-        font-size: 1.8rem;
+        font-size: 1.3rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+    .app-header p {
+        margin: 0.25rem 0 0 0;
+        opacity: 0.85;
+        font-size: 0.8rem;
+    }
+    
+    /* Step tracker - compact pills */
+    .step-pills {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        justify-content: center;
+    }
+    .pill {
+        font-size: 0.75rem;
         font-weight: 600;
-        letter-spacing: -0.025em;
-        color: var(--text-color) !important;
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        white-space: nowrap;
+    }
+    .pill.active {
+        background-color: var(--primary-color);
+        color: #fff;
+    }
+    .pill.inactive {
+        background-color: var(--secondary-background-color);
+        color: var(--text-color);
+        opacity: 0.5;
     }
     
-    .header-container p {
-        margin: 0.5rem 0 0 0;
-        opacity: 0.8;
-        font-size: 0.95rem;
+    /* Quick Book cards */
+    .qb-card {
+        background: var(--secondary-background-color);
+        border: 1px solid rgba(128,128,128,0.15);
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        transition: all 0.15s ease;
     }
-    
-    .stepper {
+    .qb-card:hover {
+        border-color: var(--primary-color);
+        box-shadow: 0 4px 12px rgba(37,99,235,0.15);
+    }
+    .qb-card .route-name {
+        font-weight: 700;
+        font-size: 1rem;
+        margin-bottom: 0.3rem;
+    }
+    .qb-card .route-meta {
+        font-size: 0.8rem;
+        opacity: 0.7;
         display: flex;
         gap: 1rem;
-        margin-bottom: 2rem;
-        border-bottom: 1px solid var(--secondary-background-color);
-        padding-bottom: 1rem;
     }
-    .step {
+    
+    /* Bus selection cards */
+    .bus-select-card {
+        background: var(--secondary-background-color);
+        border: 1px solid rgba(128,128,128,0.15);
+        border-radius: 10px;
+        padding: 0.85rem 1rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Touch-friendly buttons */
+    div.stButton > button {
+        border-radius: 8px;
+        font-weight: 600;
+        min-height: 44px;
+        transition: all 0.15s;
         font-size: 0.9rem;
-        font-weight: 500;
-        padding: 0.5rem 1rem;
-        border-radius: 6px;
-        transition: all 0.2s ease;
     }
-    .step.active {
-        background-color: var(--primary-color);
-        color: #ffffff;
+    
+    /* Forms */
+    [data-testid="stForm"] {
+        background-color: var(--secondary-background-color);
+        border: 1px solid rgba(128,128,128,0.15);
+        border-radius: 10px;
+        padding: 1rem;
     }
-    .step.inactive {
-        color: var(--text-color);
-        opacity: 0.6;
-        background-color: transparent;
-    }
-
+    
+    /* Mobile overrides */
     @media (max-width: 768px) {
+        /* Stack ALL columns on mobile */
         [data-testid="stHorizontalBlock"] {
-            flex-direction: row !important;
-            flex-wrap: nowrap !important;
-            gap: 4px !important;
+            flex-direction: column !important;
+            gap: 0.5rem !important;
         }
+        
         .stButton button {
-            padding: 0.4rem 0.2rem !important;
-            font-size: 0.75rem !important;
-            min-height: 44px !important;
-            min-width: 0 !important;
+            min-height: 48px !important;
+            font-size: 0.85rem !important;
         }
-        .header-container {
-            padding: 1.25rem;
+        
+        .app-header h2 {
+            font-size: 1.1rem;
         }
-        .header-container h1 {
-            font-size: 1.4rem;
+        
+        /* Bigger inputs on mobile */
+        input, textarea, select {
+            font-size: 16px !important; /* Prevents iOS zoom */
         }
-        .stepper {
-            flex-direction: column;
-            gap: 0.5rem;
+        
+        .step-pills {
+            gap: 0.3rem;
+        }
+        .pill {
+            font-size: 0.65rem;
+            padding: 0.25rem 0.5rem;
         }
     }
     
@@ -141,58 +198,80 @@ st.markdown("""
         overflow-x: auto;
     }
     
-    div.stButton > button {
-        border-radius: 6px;
-        font-weight: 500;
-        transition: all 0.2s;
-    }
-    
-    [data-testid="stForm"] {
-        background-color: var(--secondary-background-color);
-        border: 1px solid rgba(128,128,128,0.2);
+    /* Metric cards compact */
+    [data-testid="stMetric"] {
+        background: var(--secondary-background-color);
         border-radius: 8px;
-        padding: 1.5rem;
-    }
-    
-    /* Bus card styling */
-    .bus-card {
-        background-color: var(--secondary-background-color);
-        border: 1px solid rgba(128,128,128,0.15);
-        border-radius: 8px;
-        padding: 1rem 1.25rem;
-        margin-bottom: 0.75rem;
+        padding: 0.75rem;
+        border: 1px solid rgba(128,128,128,0.1);
     }
 </style>
 """, unsafe_allow_html=True)
 
-# Top Bar with Theme Toggle
-t_col1, t_col2 = st.columns([9, 1])
-with t_col2:
+# ==========================================
+#   HEADER + THEME TOGGLE (Compact)
+# ==========================================
+h_col1, h_col2 = st.columns([8, 1])
+with h_col2:
     if st.session_state.is_dark_theme:
-        if st.button(":material/light_mode:", help="Switch to Light Theme"):
+        if st.button(":material/light_mode:", help="Light Theme"):
             st.session_state.is_dark_theme = False
             set_theme(False)
             st.rerun()
     else:
-        if st.button(":material/dark_mode:", help="Switch to Dark Theme"):
+        if st.button(":material/dark_mode:", help="Dark Theme"):
             st.session_state.is_dark_theme = True
             set_theme(True)
             st.rerun()
 
-# Application Header
-with t_col1:
+with h_col1:
     st.markdown("""
-    <div class="header-container">
-        <h1>Travel Agency Management System</h1>
-        <p>Professional Ticketing, Automated PDF Generation, and SMS Dispatching</p>
+    <div class="app-header">
+        <h2>Bus Booking System</h2>
+        <p>Quick Ticketing & SMS Dispatch</p>
     </div>
     """, unsafe_allow_html=True)
 
-
-tab1, tab2 = st.tabs(["New Booking", "Booking History"])
+# ==========================================
+#   SMS CONFIG BAR (Always visible, compact)
+# ==========================================
+with st.expander("SMS & Notifications", expanded=False):
+    sms_col1, sms_col2 = st.columns([3, 1])
+    with sms_col1:
+        sms_token = st.text_input(
+            "API Token",
+            type="password",
+            help="Leave blank for Simulated Mode",
+            label_visibility="collapsed",
+            placeholder="Enter SMS API token or leave blank for simulation"
+        )
+    with sms_col2:
+        if sms_token:
+            st.success("Live SMS")
+        else:
+            st.info("Simulation")
+    
+    # Show SMS logs inline
+    if st.session_state.sms_logs:
+        st.caption(f"{len(st.session_state.sms_logs)} simulated message(s) sent")
+        for i, log in enumerate(reversed(st.session_state.sms_logs[-3:])):
+            with st.popover(f"View SMS to {log['phone']}", use_container_width=True):
+                st.markdown(f"""
+                <div style="background: #f0f2f5; border-radius: 16px; padding: 12px; border: 3px solid #444; max-width: 280px; margin: auto;">
+                    <div style="text-align: center; font-size: 10px; color: #888; margin-bottom: 8px;">SMS Preview</div>
+                    <div style="background: #dcf8c6; padding: 10px; border-radius: 10px 10px 0 10px; font-size: 12px; color: #000; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                        {log['message'].replace(chr(10), '<br>')}
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
 
 # ==========================================
-#   TAB 1: NEW BOOKING
+#   TABS
+# ==========================================
+tab1, tab2 = st.tabs(["Book", "History"])
+
+# ==========================================
+#   TAB 1: BOOKING
 # ==========================================
 with tab1:
     # Session State Initialization
@@ -215,58 +294,84 @@ with tab1:
     if 'autofill_done' not in st.session_state:
         st.session_state.autofill_done = False
 
-    # Visual Step Tracker
-    s1_cls = "step active" if st.session_state.step == 1 else "step inactive"
-    s2_cls = "step active" if st.session_state.step == 2 else "step inactive"
-    s3_cls = "step active" if st.session_state.step == 3 else "step inactive"
+    # Step Tracker (compact pills)
+    s1 = "pill active" if st.session_state.step == 1 else "pill inactive"
+    s2 = "pill active" if st.session_state.step == 2 else "pill inactive"
+    s3 = "pill active" if st.session_state.step == 3 else "pill inactive"
     
     st.markdown(f"""
-    <div class="stepper">
-        <div class="{s1_cls}">Step 1: Route Configuration</div>
-        <div class="{s2_cls}">Step 2: Fleet Selection</div>
-        <div class="{s3_cls}">Step 3: Seat & Passenger Allocation</div>
+    <div class="step-pills">
+        <div class="{s1}">1. Route</div>
+        <div class="{s2}">2. Bus</div>
+        <div class="{s3}">3. Book</div>
     </div>
     """, unsafe_allow_html=True)
 
-    # ---- STEP 1: Select Route and Date ----
+    # ---- STEP 1: Route Selection with Quick Book ----
     if st.session_state.step == 1:
-        st.subheader("Route Configuration")
         routes = database.get_routes()
         
         if not routes:
-            st.warning("No bus schedules found in database. Initializing default schedules...")
+            st.warning("No bus schedules found. Initializing defaults...")
             import setup_schedules
             setup_schedules.setup()
             routes = database.get_routes()
 
-        col1, col2 = st.columns(2)
-        with col1:
+        # --- QUICK BOOK: Popular Routes ---
+        st.markdown("#### Quick Book")
+        popular = database.get_popular_routes(limit=3)
+        
+        for pr in popular:
+            fare_text = f"From BDT {int(pr['min_fare']):,}" if pr['min_fare'] and pr['min_fare'] > 0 else ""
+            bookings_text = f"{pr['booking_count']} bookings" if pr['booking_count'] > 0 else "New route"
+            
+            qb_col1, qb_col2 = st.columns([4, 1])
+            with qb_col1:
+                st.markdown(f"""
+                <div class="qb-card">
+                    <div class="route-name">{pr['route']}</div>
+                    <div class="route-meta">
+                        <span>{fare_text}</span>
+                        <span>Next: {pr['next_departure']}</span>
+                        <span>{bookings_text}</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            with qb_col2:
+                if st.button("Book", key=f"qb_{pr['route']}", type="primary", use_container_width=True):
+                    st.session_state.selected_route = pr['route']
+                    st.session_state.travel_date = datetime.now().date()
+                    st.session_state.step = 2
+                    st.session_state.selected_schedule = None
+                    st.session_state.selected_seats = []
+                    st.rerun()
+        
+        # --- Full Route Selection ---
+        st.markdown("---")
+        with st.expander("All Routes & Custom Date", expanded=False):
             route = st.selectbox(
                 "Select Route", 
                 routes, 
                 index=routes.index(st.session_state.selected_route) if st.session_state.selected_route in routes else 0
             )
-        with col2:
             travel_date = st.date_input("Travel Date", value=st.session_state.travel_date)
             
-        st.write("")
-        if st.button("Proceed to Fleet Selection", type="primary"):
-            st.session_state.selected_route = route
-            st.session_state.travel_date = travel_date
-            st.session_state.step = 2
-            st.session_state.selected_schedule = None
-            st.session_state.selected_seats = []
-            st.rerun()
+            if st.button("Select Route", type="primary", use_container_width=True):
+                st.session_state.selected_route = route
+                st.session_state.travel_date = travel_date
+                st.session_state.step = 2
+                st.session_state.selected_schedule = None
+                st.session_state.selected_seats = []
+                st.rerun()
 
-    # ---- STEP 2: Select Bus (with seat availability count) ----
+    # ---- STEP 2: Bus Selection (Stacked Cards) ----
     elif st.session_state.step == 2:
-        st.subheader("Fleet Selection")
-        st.markdown(f"**Route:** {st.session_state.selected_route} | **Date:** {st.session_state.travel_date}")
+        st.markdown(f"**{st.session_state.selected_route}** | {st.session_state.travel_date}")
         
         schedules = database.get_schedules_by_route(st.session_state.selected_route)
         
         if not schedules:
-            st.warning("No fleets available for this route.")
+            st.warning("No buses available for this route.")
         else:
             for sched in schedules:
                 booked_count = database.get_booked_seat_count(sched['schedule_id'], str(st.session_state.travel_date))
@@ -274,54 +379,56 @@ with tab1:
                 available = total - booked_count
                 fare = sched.get('base_fare', 0)
                 
+                # Stacked card layout (mobile-friendly)
                 with st.container():
-                    c1, c2, c3, c4, c5 = st.columns([3, 2, 2, 2, 2])
-                    c1.markdown(f"**{sched['bus_name']}**")
-                    c2.markdown(f"Departure: **{sched['departure_time']}**")
+                    st.markdown(f"""
+                    <div class="bus-select-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: 700; font-size: 1rem;">{sched['bus_name']}</div>
+                                <div style="font-size: 0.85rem; opacity: 0.7; margin-top: 2px;">
+                                    Departure: {sched['departure_time']}
+                                    {f' | BDT {fare:,.0f}' if fare > 0 else ''}
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                {'<span style="color: #ef4444; font-weight: 700;">FULL</span>' if available == 0 else f'<span style="color: {"#f97316" if available <= 10 else "#22c55e"}; font-weight: 700;">{available}/{total}</span>'}
+                            </div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
                     
-                    # Color-code availability
-                    if available == 0:
-                        c3.markdown(f":red[**FULL** (0/{total})]")
-                    elif available <= 10:
-                        c3.markdown(f":orange[**{available}/{total}** Available]")
-                    else:
-                        c3.markdown(f":green[**{available}/{total}** Available]")
-                    
-                    if fare > 0:
-                        c4.markdown(f"Fare: **BDT {fare:,.0f}**")
-                    
-                    if c5.button("Select", key=f"sel_bus_{sched['schedule_id']}", disabled=(available == 0)):
+                    if st.button(
+                        f"Select {sched['bus_name']} - {sched['departure_time']}", 
+                        key=f"sel_bus_{sched['schedule_id']}", 
+                        disabled=(available == 0),
+                        use_container_width=True
+                    ):
                         st.session_state.selected_schedule = sched
                         st.session_state.step = 3
                         st.session_state.selected_seats = []
                         st.session_state.autofill_done = False
                         st.rerun()
-                        
+        
         st.write("")
-        if st.button("Back to Route Configuration"):
+        if st.button("Back", use_container_width=True):
             st.session_state.step = 1
             st.rerun()
 
     # ---- STEP 3: Seat Selection & Passenger Info ----
     elif st.session_state.step == 3:
-        st.subheader("Seat Allocation")
-        
         sched = st.session_state.selected_schedule
         booked_seats = database.get_booked_seats(sched['schedule_id'], str(st.session_state.travel_date))
         
-        st.info(f"Route: {st.session_state.selected_route} | Fleet: {sched['bus_name']} | Departure: {sched['departure_time']}")
+        st.markdown(f"**{sched['bus_name']}** | {st.session_state.selected_route} | {sched['departure_time']}")
         
-        # Legend
-        l1, l2, l3, l4 = st.columns(4)
-        l1.markdown("`[   ]` Available")
-        l2.markdown("`[ X ]` Booked")
-        l3.markdown("`[ O ]` Selected")
-        st.write("")
+        # Legend (compact)
+        st.caption("[ ] Available | [X] Booked | [O] Selected")
         
-        # Seat Grid layout (2x2 with aisle)
+        # Seat Grid (2x2 with aisle)
         rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
         for r in rows:
-            cols = st.columns([1, 1, 0.4, 1, 1])
+            cols = st.columns([1, 1, 0.3, 1, 1])
             seats_in_row = [f"{r}1", f"{r}2", f"{r}3", f"{r}4"]
             col_indices = [0, 1, 3, 4]
             
@@ -329,11 +436,12 @@ with tab1:
                 is_booked = seat in booked_seats
                 is_selected = (seat in st.session_state.selected_seats)
                 
-                label = f"{seat}"
                 if is_booked:
                     label = f"X {seat}"
                 elif is_selected:
                     label = f"O {seat}"
+                else:
+                    label = f"{seat}"
                     
                 btn_type = "primary" if is_selected else "secondary"
                 
@@ -351,19 +459,18 @@ with tab1:
                     st.rerun()
         
         st.write("")
-        if st.button("Back to Fleet Selection"):
+        if st.button("Back to Buses", use_container_width=True):
             st.session_state.step = 2
             st.rerun()
 
         if st.session_state.selected_seats:
             seats_str = ", ".join(st.session_state.selected_seats)
-            st.success(f"Seats Allocated: {seats_str}")
+            st.success(f"Seats: {seats_str}")
             st.markdown("---")
-            st.subheader("Passenger Information")
             
-            # --- FEATURE #1: Auto-fill returning customer ---
+            # --- Auto-fill returning customer ---
             phone_lookup = st.text_input(
-                "Phone Number (type and press Enter to auto-fill)",
+                "Phone (auto-fill)",
                 value=st.session_state.customer_phone,
                 key="phone_lookup_input",
                 placeholder="e.g. 01712345678"
@@ -379,43 +486,38 @@ with tab1:
                     st.rerun()
             
             if st.session_state.autofill_done:
-                st.success(f"Returning customer found: {st.session_state.customer_name}")
+                st.success(f"Returning customer: {st.session_state.customer_name}")
                 st.session_state.autofill_done = False
             
-            # Booking form
+            # Booking form (single column for mobile)
             with st.form("booking_form", clear_on_submit=False):
-                p_col1, p_col2 = st.columns(2)
+                phone = st.text_input(
+                    "Mobile Phone", 
+                    value=st.session_state.customer_phone,
+                    placeholder="Required for SMS"
+                )
+                name = st.text_input(
+                    "Passenger Name", 
+                    value=st.session_state.customer_name
+                )
+                address = st.text_input(
+                    "Address (Optional)", 
+                    value=st.session_state.customer_address
+                )
                 
-                with p_col1:
-                    phone = st.text_input(
-                        "Mobile Phone Number", 
-                        value=st.session_state.customer_phone,
-                        placeholder="Required for SMS"
-                    )
-                    name = st.text_input(
-                        "Passenger Full Name", 
-                        value=st.session_state.customer_name
-                    )
-                    
-                with p_col2:
-                    address = st.text_input(
-                        "Address / Destination (Optional)", 
-                        value=st.session_state.customer_address
-                    )
-                
+                # Fare and payment
+                default_fare = int(sched.get('base_fare', 0)) if sched.get('base_fare', 0) > 0 else 1500
                 f_col1, f_col2 = st.columns(2)
                 with f_col1:
-                    # --- FEATURE #5: Route-based fare auto-fill ---
-                    default_fare = int(sched.get('base_fare', 0)) if sched.get('base_fare', 0) > 0 else 1500
-                    price = st.number_input("Ticket Fare (BDT)", min_value=0, step=50, value=default_fare)
+                    price = st.number_input("Fare (BDT)", min_value=0, step=50, value=default_fare)
                 with f_col2:
-                    payment_status = st.selectbox("Payment Status", ["Paid", "Unpaid", "Partial"])
+                    payment_status = st.selectbox("Payment", ["Paid", "Unpaid", "Partial"])
                 
-                submitted = st.form_submit_button("Confirm Booking & Generate Tickets", type="primary", use_container_width=True)
+                submitted = st.form_submit_button("Confirm Booking", type="primary", use_container_width=True)
                 
                 if submitted:
                     if not phone.strip() or not name.strip() or price <= 0:
-                        st.error("Error: Please complete all required fields (Phone, Name, and Fare must be greater than 0).")
+                        st.error("Please fill Phone, Name, and Fare.")
                     else:
                         try:
                             database.save_customer(phone, name, address)
@@ -462,9 +564,7 @@ with tab1:
                                     api_token=sms_token if sms_token else None
                                 )
                                 
-                                # Capture the text generated by the SMS service
-                                # Re-create the text here since sms_service just logs it natively
-                                last_sms_text = f"Hello {name}, your ticket is Confirmed!\\nTicket ID: TKT{booking_id}\\nBus: {sched['bus_name']}\\nSeat: {seat}\\nDate: {st.session_state.travel_date} ({sched['departure_time']})\\nFare: BDT {price}\\nThank you for choosing us!"
+                                last_sms_text = f"Hello {name}, your ticket is Confirmed!\nTicket ID: TKT{booking_id}\nBus: {sched['bus_name']}\nSeat: {seat}\nDate: {st.session_state.travel_date} ({sched['departure_time']})\nFare: BDT {price}\nThank you for choosing us!"
                             
                             if not sms_token:
                                 st.session_state.sms_logs.append({
@@ -473,14 +573,14 @@ with tab1:
                                 })
                             
                             ids_str = ", ".join(booked_ids)
-                            st.success(f"Transaction Successful. Ticket Identifiers: {ids_str}")
+                            st.success(f"Booked! Tickets: {ids_str}")
                             
                             if sms_res.get("mock"):
-                                st.info(f"SMS Notification (Simulated): Dispatched to {phone}. Check the sidebar logs.")
+                                st.info(f"SMS simulated to {phone}")
                             elif sms_res.get("success"):
-                                st.success(f"SMS Notification Sent: Real SMS delivered to {phone}")
+                                st.success(f"SMS sent to {phone}")
                             else:
-                                st.warning(f"SMS Delivery Exception: {sms_res.get('message')}")
+                                st.warning(f"SMS failed: {sms_res.get('message')}")
                                 
                             st.session_state.latest_pdfs = generated_pdfs
                             st.session_state.selected_seats = []
@@ -489,22 +589,21 @@ with tab1:
                             st.session_state.customer_address = ""
                             
                         except Exception as e:
-                            st.error(f"Transaction failed due to system error: {e}")
+                            st.error(f"Error: {e}")
             
-            # Download buttons and previews outside the form
+            # Download buttons and ticket preview
             if st.session_state.get('latest_pdfs'):
-                st.markdown("### Generated Tickets")
+                st.markdown("---")
+                st.markdown("#### Tickets")
                 
-                # Fetch last booking details for previews
                 last_booking = None
                 if all_bookings := database.get_all_bookings():
-                    # Get the most recent booking that matches the phone number
                     for b in all_bookings:
                         if b['phone_number'] == st.session_state.get('customer_phone', ''):
                             last_booking = b
                             break
                     if not last_booking:
-                        last_booking = all_bookings[0] # Fallback
+                        last_booking = all_bookings[0]
                 
                 for idx, pdf_path in enumerate(st.session_state.latest_pdfs):
                     if os.path.exists(pdf_path):
@@ -512,59 +611,47 @@ with tab1:
                             pdf_bytes = pdf_file.read()
                             
                         ticket_name = os.path.basename(pdf_path).split('_')[0]
-                        with st.expander(f"🎫 {ticket_name} - Ticket Summary", expanded=True):
-                            dl_col, tkt_col = st.columns([1, 2])
-                            
-                            with dl_col:
-                                st.write("")
-                                st.write("")
-                                st.download_button(
-                                    label="📥 Download PDF",
-                                    data=pdf_bytes,
-                                    file_name=os.path.basename(pdf_path),
-                                    mime='application/pdf',
-                                    type="primary",
-                                    key=f"dl_btn_{idx}",
-                                    use_container_width=True
-                                )
-                                
-                            with tkt_col:
-                                st.markdown(f"""
-                                <div style="background: var(--secondary-background-color); padding: 15px; border-radius: 10px; border-left: 5px solid var(--primary-color); color: var(--text-color); border: 1px solid rgba(128,128,128,0.2);">
-                                    <h4 style="margin:0; opacity: 0.9;">BOARDING PASS SUMMARY</h4>
-                                    <hr style="margin: 10px 0; border-color: rgba(128,128,128,0.2);">
-                                    <b>Ticket:</b> {ticket_name}<br>
-                                    <b>Passenger:</b> {last_booking['customer_name'] if last_booking else 'N/A'}<br>
-                                    <b>Route:</b> {last_booking['route'] if last_booking else 'N/A'} &nbsp;|&nbsp; <b>Bus:</b> {last_booking['bus_name'] if last_booking else 'N/A'}<br>
-                                    <b>Seat:</b> <span style="color: #ef4444; font-weight:bold;">{last_booking['seat_number'] if last_booking else 'N/A'}</span> &nbsp;|&nbsp; <b>Fare:</b> BDT {last_booking['price'] if last_booking else '0'}<br>
-                                    <b>Departure:</b> {last_booking['travel_date'] if last_booking else 'N/A'} at {last_booking['departure_time'] if last_booking else 'N/A'}
-                                </div>
-                                """, unsafe_allow_html=True)
+                        
+                        # Compact ticket card
+                        st.markdown(f"""
+                        <div style="background: var(--secondary-background-color); padding: 12px; border-radius: 10px; border-left: 4px solid var(--primary-color); margin-bottom: 8px; border: 1px solid rgba(128,128,128,0.15);">
+                            <div style="font-weight: 700; margin-bottom: 4px;">{ticket_name}</div>
+                            <div style="font-size: 0.85rem; opacity: 0.8;">
+                                {last_booking['customer_name'] if last_booking else 'N/A'} |
+                                Seat {last_booking['seat_number'] if last_booking else 'N/A'} |
+                                {last_booking['route'] if last_booking else 'N/A'}
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        st.download_button(
+                            label=f"Download {ticket_name}",
+                            data=pdf_bytes,
+                            file_name=os.path.basename(pdf_path),
+                            mime='application/pdf',
+                            type="primary",
+                            key=f"dl_btn_{idx}",
+                            use_container_width=True
+                        )
 
 # ==========================================
 #   TAB 2: BOOKING HISTORY
 # ==========================================
 with tab2:
-    st.header("Financial Overview & History")
+    st.markdown("#### History & Finance")
     all_bookings = database.get_all_bookings()
     
     if all_bookings:
         df = pd.DataFrame(all_bookings)
         df['created_at'] = pd.to_datetime(df['created_at'])
         
-        # --- FEATURE #3: Booking Search / Ticket Lookup ---
-        st.subheader("Search Bookings")
-        search_col1, search_col2 = st.columns([3, 1])
-        with search_col1:
-            search_query = st.text_input(
-                "Search by Ticket ID, Customer Name, or Phone Number",
-                placeholder="e.g. TKT1026, Karim, 01712345678",
-                key="search_bookings"
-            )
-        with search_col2:
-            search_status = st.selectbox("Filter by Status", ["All", "Booked", "Cancelled"], key="search_status")
-        
-        st.write("---")
+        # Search (full width)
+        search_query = st.text_input(
+            "Search",
+            placeholder="Ticket ID, Name, or Phone",
+            key="search_bookings"
+        )
+        search_status = st.selectbox("Status Filter", ["All", "Booked", "Cancelled"], key="search_status")
         
         # Apply search filters
         filtered_df = df.copy()
@@ -581,11 +668,9 @@ with tab2:
         if search_status != "All":
             filtered_df = filtered_df[filtered_df['status'] == search_status]
         
-        # Date range filter
-        st.subheader("Report Filters")
+        # Date range
         min_date = df['created_at'].min().date()
         max_date = df['created_at'].max().date()
-        
         selected_dates = st.date_input("Date Range", value=(min_date, max_date), min_value=min_date, max_value=max_date)
         
         if isinstance(selected_dates, tuple) and len(selected_dates) == 2:
@@ -593,48 +678,45 @@ with tab2:
             mask = (filtered_df['created_at'].dt.date >= start_date) & (filtered_df['created_at'].dt.date <= end_date)
             filtered_df = filtered_df.loc[mask]
         
-        # --- FEATURE #7: Net Revenue (Gross - Refunds) ---
+        # Revenue metrics (2x2 grid)
         total_revenue = filtered_df['price'].sum()
-        total_bookings = len(filtered_df)
         booked_df = filtered_df[filtered_df['status'] != 'Cancelled'] if 'status' in filtered_df.columns else filtered_df
         cancelled_df = filtered_df[filtered_df['status'] == 'Cancelled'] if 'status' in filtered_df.columns else pd.DataFrame()
         total_refunds = cancelled_df['refund_amount'].sum() if not cancelled_df.empty and 'refund_amount' in cancelled_df.columns else 0
         net_revenue = total_revenue - total_refunds
         active_bookings = len(booked_df)
         
-        m1, m2, m3, m4 = st.columns(4)
-        m1.metric("Active Bookings", active_bookings)
-        m2.metric("Gross Revenue", f"BDT {total_revenue:,.2f}")
-        m3.metric("Total Refunds", f"BDT {total_refunds:,.2f}")
-        m4.metric("Net Revenue", f"BDT {net_revenue:,.2f}")
+        m1, m2 = st.columns(2)
+        m1.metric("Active", active_bookings)
+        m2.metric("Net Revenue", f"BDT {net_revenue:,.0f}")
         
-        # --- FEATURE #8: Cancellation with Double-Cancel Guard ---
-        st.subheader("Manage Bookings")
-        col_c1, col_c2, col_c3 = st.columns([2, 2, 1])
-        with col_c1:
-            cancel_id_raw = st.text_input("Enter Ticket ID to Cancel (e.g., TKT1026)", key="cancel_input")
-        with col_c2:
-            refund_amt = st.number_input("Refund Amount (BDT)", min_value=0.0, step=50.0, value=0.0)
-        with col_c3:
-            st.write("")
-            st.write("")
-            if st.button("Cancel Ticket", type="primary", use_container_width=True):
-                if cancel_id_raw.upper().startswith("TKT"):
-                    try:
-                        b_id = int(cancel_id_raw.upper().replace("TKT", ""))
-                        result = database.cancel_booking(b_id, refund_amount=refund_amt)
-                        if result["success"]:
-                            st.success(result["message"])
-                            st.rerun()
-                        else:
-                            st.error(result["message"])
-                    except ValueError:
-                        st.error("Invalid Ticket ID format. Use TKT followed by numbers.")
-                else:
-                    st.error("Please enter a valid Ticket ID starting with 'TKT'.")
+        m3, m4 = st.columns(2)
+        m3.metric("Gross", f"BDT {total_revenue:,.0f}")
+        m4.metric("Refunds", f"BDT {total_refunds:,.0f}")
+        
+        # Cancel ticket
+        st.markdown("---")
+        st.markdown("#### Cancel Ticket")
+        cancel_id_raw = st.text_input("Ticket ID (e.g. TKT1026)", key="cancel_input")
+        refund_amt = st.number_input("Refund Amount (BDT)", min_value=0.0, step=50.0, value=0.0)
+        
+        if st.button("Cancel Ticket", type="primary", use_container_width=True):
+            if cancel_id_raw.upper().startswith("TKT"):
+                try:
+                    b_id = int(cancel_id_raw.upper().replace("TKT", ""))
+                    result = database.cancel_booking(b_id, refund_amount=refund_amt)
+                    if result["success"]:
+                        st.success(result["message"])
+                        st.rerun()
+                    else:
+                        st.error(result["message"])
+                except ValueError:
+                    st.error("Invalid Ticket ID format.")
+            else:
+                st.error("Enter a valid Ticket ID starting with 'TKT'.")
 
-        st.write("---")
-        if st.button("Export Financial Report (PDF)", type="secondary"):
+        st.markdown("---")
+        if st.button("Export Report (PDF)", use_container_width=True):
             if isinstance(selected_dates, tuple) and len(selected_dates) == 2:
                 s_date = selected_dates[0].strftime("%Y-%m-%d")
                 e_date = selected_dates[1].strftime("%Y-%m-%d")
@@ -646,90 +728,59 @@ with tab2:
             
             with open(report_path, "rb") as pdf_file:
                 st.download_button(
-                    label="Download Report PDF",
+                    label="Download Report",
                     data=pdf_file.read(),
                     file_name=os.path.basename(report_path),
-                    mime='application/pdf'
+                    mime='application/pdf',
+                    use_container_width=True
                 )
-        st.write("---")
         
+        st.markdown("---")
         st.dataframe(
-            filtered_df[['booking_id', 'customer_name', 'phone_number', 'bus_name', 'route', 'departure_time', 'seat_number', 'travel_date', 'price', 'payment_status', 'status', 'created_at']],
+            filtered_df[['booking_id', 'customer_name', 'phone_number', 'bus_name', 'route', 'seat_number', 'travel_date', 'price', 'payment_status', 'status', 'created_at']],
             column_config={
-                "booking_id": "Ticket ID",
+                "booking_id": "Ticket",
                 "customer_name": "Customer",
-                "phone_number": "Phone Number",
-                "bus_name": "Fleet",
+                "phone_number": "Phone",
+                "bus_name": "Bus",
                 "route": "Route",
-                "departure_time": "Time",
                 "seat_number": "Seat",
-                "travel_date": "Travel Date",
-                "price": st.column_config.NumberColumn("Fare (BDT)", format="%.2f"),
+                "travel_date": "Date",
+                "price": st.column_config.NumberColumn("Fare", format="%.0f"),
                 "payment_status": "Payment",
                 "status": "Status",
-                "created_at": st.column_config.DatetimeColumn("Transaction Date", format="YYYY-MM-DD HH:mm")
+                "created_at": st.column_config.DatetimeColumn("Booked", format="MMM DD HH:mm")
             },
             hide_index=True,
             use_container_width=True
         )
         
-        # --- REFUND HISTORY SECTION ---
-        st.write("---")
-        st.subheader("Refund History")
+        # Refund History
         if not cancelled_df.empty and 'refund_amount' in cancelled_df.columns:
-            st.metric("Total Issued Refunds", f"BDT {total_refunds:,.2f}")
+            st.markdown("---")
+            st.markdown("#### Refund History")
+            st.metric("Total Refunded", f"BDT {total_refunds:,.0f}")
             
             st.dataframe(
                 cancelled_df[['booking_id', 'customer_name', 'phone_number', 'price', 'refund_amount', 'refund_date']],
                 column_config={
-                    "booking_id": "Ticket ID",
+                    "booking_id": "Ticket",
                     "customer_name": "Customer",
-                    "phone_number": "Phone Number",
-                    "price": st.column_config.NumberColumn("Original Fare", format="%.2f"),
-                    "refund_amount": st.column_config.NumberColumn("Refunded Amount", format="%.2f"),
-                    "refund_date": st.column_config.DatetimeColumn("Refund Date", format="YYYY-MM-DD HH:mm")
+                    "phone_number": "Phone",
+                    "price": st.column_config.NumberColumn("Fare", format="%.0f"),
+                    "refund_amount": st.column_config.NumberColumn("Refund", format="%.0f"),
+                    "refund_date": st.column_config.DatetimeColumn("Date", format="MMM DD HH:mm")
                 },
                 hide_index=True,
                 use_container_width=True
             )
-        else:
-            st.info("No refunds issued in this date range.")
     else:
-        st.info("No transaction records found.")
+        st.info("No bookings yet.")
 
 # ==========================================
-#   SIDEBAR (Rendered last for correct state updates)
+#   SIDEBAR (Overview only)
 # ==========================================
 with st.sidebar:
-    st.header("System Settings")
-    st.subheader("SMS Configuration")
-    sms_token = st.text_input(
-        "API Gateway Token",
-        type="password",
-        help="Leave blank to use Simulated Mode (Logs to console)."
-    )
-    if sms_token:
-        st.success("Real SMS Enabled")
-    else:
-        st.info("Simulated SMS Mode")
-        
-    st.divider()
     st.markdown("**Overview**")
     total_b = len(database.get_all_bookings())
     st.metric("Total Bookings", total_b)
-    
-    st.divider()
-    st.subheader("💬 SMS Simulator Logs")
-    if not st.session_state.sms_logs:
-        st.write("No simulated messages sent yet.")
-    else:
-        for log in reversed(st.session_state.sms_logs[-5:]): # Show last 5
-            with st.popover(f"📱 View SMS: {log['phone']}", use_container_width=True):
-                st.markdown(f"""
-                <div style="width: 240px; height: 180px; background: #f0f2f5; border-radius: 20px; padding: 15px; border: 4px solid #333; margin: auto; box-shadow: 0 10px 15px rgba(0,0,0,0.2); overflow-y: auto;">
-                    <div style="text-align: center; font-size: 10px; color: #888; margin-bottom: 10px;">Today 10:41 AM</div>
-                    <div style="background: #dcf8c6; padding: 10px; border-radius: 10px 10px 0 10px; font-size: 12px; color: #000; float: right; max-width: 90%; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
-                        {log['message'].replace(chr(10), '<br>')}
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)

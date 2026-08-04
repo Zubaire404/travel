@@ -239,3 +239,35 @@ def add_bus_schedule(bus_name, route, departure_time, total_seats=40, base_fare=
         cursor.execute('UPDATE bus_schedules SET base_fare = ? WHERE schedule_id = ?', (base_fare, existing[0]))
     conn.commit()
     conn.close()
+
+def get_popular_routes(limit=3):
+    """Returns the top routes ranked by total booking count, with next departure and fare."""
+    conn = get_connection()
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT s.route, COUNT(b.booking_id) as booking_count, 
+               MIN(s.base_fare) as min_fare, MAX(s.base_fare) as max_fare
+        FROM bus_schedules s
+        LEFT JOIN bookings b ON s.schedule_id = b.schedule_id AND b.status != 'Cancelled'
+        GROUP BY s.route
+        ORDER BY booking_count DESC
+        LIMIT ?
+    ''', (limit,))
+    rows = cursor.fetchall()
+    conn.close()
+    
+    results = []
+    for row in rows:
+        r = dict(row)
+        # Get next departure for this route
+        conn2 = get_connection()
+        conn2.row_factory = sqlite3.Row
+        c2 = conn2.cursor()
+        c2.execute('SELECT departure_time FROM bus_schedules WHERE route = ? ORDER BY departure_time LIMIT 1', (r['route'],))
+        dep = c2.fetchone()
+        conn2.close()
+        r['next_departure'] = dep['departure_time'] if dep else 'N/A'
+        results.append(r)
+    
+    return results
