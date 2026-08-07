@@ -56,6 +56,18 @@ if 'sms_logs' not in st.session_state:
 # MOBILE-FIRST: Use default centered layout, not wide
 st.set_page_config(page_title="Bus Booking", layout="centered", initial_sidebar_state="collapsed")
 
+# Add SMS API Setting in Sidebar
+st.sidebar.markdown("#### ⚙️ SMS API Settings")
+st.sidebar.caption("Provide a [Greenweb BD](http://api.greenweb.com.bd/) or BulkSMSBD token to send real SMS. Without this, SMS is simulated.")
+user_sms_token = st.sidebar.text_input(
+    "API Token (Optional)", 
+    type="password", 
+    value=os.environ.get("GREENWEB_API_TOKEN", ""),
+    help="Paste your Greenweb API token here for live SMS sending."
+)
+if user_sms_token:
+    os.environ["GREENWEB_API_TOKEN"] = user_sms_token
+
 # ==========================================
 #   MOBILE-FIRST CSS
 # ==========================================
@@ -488,7 +500,8 @@ with tab1:
                 "Phone (auto-fill)",
                 value=st.session_state.customer_phone,
                 key="phone_lookup_input",
-                placeholder="e.g. 01712345678"
+                placeholder="e.g. 01712345678",
+                max_chars=11
             )
             
             if phone_lookup and phone_lookup != st.session_state.customer_phone:
@@ -509,7 +522,8 @@ with tab1:
                 phone = st.text_input(
                     "Mobile Phone", 
                     value=st.session_state.customer_phone,
-                    placeholder="Required for SMS"
+                    placeholder="Required for SMS",
+                    max_chars=11
                 )
                 name = st.text_input(
                     "Passenger Name", 
@@ -662,10 +676,20 @@ with tab1:
                         b64 = base64.b64encode(pdf_bytes).decode('utf-8')
                         st.markdown(f"""
                         <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                            <a href="data:application/pdf;base64,{b64}" target="_blank" style="flex: 1; text-align: center; padding: 10px; background-color: var(--secondary-background-color); color: var(--text-color); border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; text-decoration: none; font-weight: 600;">🖨️ Print / Fullscreen</a>
+                            <a href="data:application/pdf;base64,{b64}" target="_blank" style="flex: 1; text-align: center; padding: 10px; background-color: var(--secondary-background-color); color: var(--text-color); border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; text-decoration: none; font-weight: 600;">🖨️ Print / Open in Browser</a>
                         </div>
-                        <iframe src="data:application/pdf;base64,{b64}" width="100%" height="400px" style="border:1px solid rgba(128,128,128,0.3); border-radius:8px; margin-bottom: 20px;"></iframe>
                         """, unsafe_allow_html=True)
+                        
+                        try:
+                            import fitz
+                            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+                            st.markdown("##### PDF Preview")
+                            for page_num in range(len(doc)):
+                                page = doc.load_page(page_num)
+                                pix = page.get_pixmap(dpi=120)
+                                st.image(pix.tobytes("png"), use_container_width=True)
+                        except Exception as e:
+                            st.error(f"Could not render PDF preview: {e}")
 
 # ==========================================
 #   TAB 2: BOOKING HISTORY

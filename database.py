@@ -76,9 +76,11 @@ def init_db():
                 cursor.execute("INSERT INTO sqlite_sequence (name, seq) VALUES ('bookings', 1000)")
             except sqlite3.Error:
                 pass
+    # Delete old default routes to ensure only Bogura routes show up
+    cursor.execute("DELETE FROM bus_schedules WHERE route IN ('Dhaka - Sylhet', 'Dhaka - Cox''s Bazar', 'Dhaka - Chittagong')")
+    
     conn.commit()
     conn.close()
-    
     # Ensure default Bogura schedules are populated automatically
     seed_default_schedules()
 
