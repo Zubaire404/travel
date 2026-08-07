@@ -163,89 +163,20 @@ st.markdown("""
         padding: 1rem;
     }
     
-    /* Bus layout */
-    .bus-body {
-        background: var(--secondary-background-color);
-        border: 2px solid rgba(128,128,128,0.3);
-        border-radius: 20px 20px 10px 10px;
-        padding: 12px 10px;
-        max-width: 320px;
-        margin: 0 auto 1rem auto;
-    }
-    .bus-front {
-        text-align: center;
-        padding: 8px 0;
-        border-bottom: 2px dashed rgba(128,128,128,0.2);
-        margin-bottom: 8px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        opacity: 0.7;
-    }
-    .seat-row {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 4px;
-        margin-bottom: 4px;
-    }
-    .seat-btn {
-        width: 60px;
-        height: 42px;
-        border-radius: 8px 8px 4px 4px;
-        border: 2px solid rgba(128,128,128,0.3);
-        font-size: 0.75rem;
-        font-weight: 700;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.15s;
-        position: relative;
-    }
-    .seat-btn.available {
-        background: rgba(34,197,94,0.15);
-        border-color: #22c55e;
-        color: #22c55e;
-    }
-    .seat-btn.available:hover {
-        background: rgba(34,197,94,0.3);
-    }
-    .seat-btn.booked {
-        background: rgba(239,68,68,0.15);
-        border-color: #ef4444;
-        color: #ef4444;
-        cursor: not-allowed;
-        opacity: 0.6;
-    }
-    .seat-btn.selected {
-        background: var(--primary-color);
-        border-color: var(--primary-color);
-        color: #fff;
-        box-shadow: 0 2px 8px rgba(37,99,235,0.3);
-    }
-    .seat-aisle {
-        width: 30px;
-        text-align: center;
-        font-size: 0.5rem;
-        color: rgba(128,128,128,0.3);
-    }
-    .bus-legend {
-        display: flex;
-        justify-content: center;
-        gap: 12px;
-        margin-bottom: 8px;
-        font-size: 0.7rem;
-    }
-    .bus-legend span {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-    }
-    .legend-dot {
-        width: 12px;
-        height: 12px;
-        border-radius: 3px;
-        display: inline-block;
+    /* Prevent seat grid from stacking on mobile */
+    @media (max-width: 768px) {
+        div[data-testid="stVerticalBlock"]:has(> div > div > .seat-marker) > div > div > [data-testid="stHorizontalBlock"],
+        div:has(> .seat-marker) [data-testid="stHorizontalBlock"] {
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            gap: 4px !important;
+        }
+        
+        div:has(> .seat-marker) .stButton button {
+            min-height: 40px !important;
+            padding: 0 !important;
+            font-size: 0.75rem !important;
+        }
     }
 
     /* Mobile overrides */
@@ -270,14 +201,6 @@ st.markdown("""
         .pill {
             font-size: 0.65rem;
             padding: 0.25rem 0.5rem;
-        }
-        
-        .bus-body {
-            max-width: 100%;
-        }
-        .seat-btn {
-            width: 22%;
-            min-width: 50px;
         }
     }
     
@@ -509,57 +432,46 @@ with tab1:
         
         st.markdown(f"**{sched['bus_name']}** | {st.session_state.selected_route} | {sched['departure_time']}")
         
-        # Build the visual bus layout as HTML
-        rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
-        
-        # Legend
-        st.markdown("""
-        <div class="bus-legend">
-            <span><div class="legend-dot" style="background: rgba(34,197,94,0.3); border: 1px solid #22c55e;"></div> Available</span>
-            <span><div class="legend-dot" style="background: rgba(239,68,68,0.3); border: 1px solid #ef4444;"></div> Booked</span>
-            <span><div class="legend-dot" style="background: var(--primary-color);"></div> Selected</span>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Bus body with visual seats
-        bus_html = '<div class="bus-body">'
-        bus_html += '<div class="bus-front">DRIVER</div>'
-        
-        for r in rows:
-            seats = [f"{r}1", f"{r}2", f"{r}3", f"{r}4"]
-            bus_html += '<div class="seat-row">'
-            for i, seat in enumerate(seats):
-                if i == 2:
-                    bus_html += '<div class="seat-aisle">|</div>'
-                is_booked = seat in booked_seats
-                is_selected = seat in st.session_state.selected_seats
-                if is_booked:
-                    cls = 'booked'
-                    icon = 'X'
-                elif is_selected:
-                    cls = 'selected'
-                    icon = seat
-                else:
-                    cls = 'available'
-                    icon = seat
-                bus_html += f'<div class="seat-btn {cls}">{icon}</div>'
-            bus_html += '</div>'
-        
-        bus_html += '</div>'
-        st.markdown(bus_html, unsafe_allow_html=True)
-        
-        # Actual clickable Streamlit buttons (hidden visual, functional)
-        # Use a compact multiselect instead of 40 individual buttons
-        all_seats = [f"{r}{c}" for r in rows for c in [1,2,3,4]]
-        available_seats = [s for s in all_seats if s not in booked_seats]
-        
-        selected = st.multiselect(
-            "Tap seats to select",
-            options=available_seats,
-            default=[s for s in st.session_state.selected_seats if s in available_seats],
-            key="seat_picker"
-        )
-        st.session_state.selected_seats = selected
+        # Seat Grid inside a targeted container
+        with st.container():
+            st.markdown('<div class="seat-marker"></div>', unsafe_allow_html=True)
+            st.caption("[ ] Available &nbsp;&nbsp;|&nbsp;&nbsp; [X] Booked &nbsp;&nbsp;|&nbsp;&nbsp; [●] Selected")
+            st.markdown("<div style='text-align: center; font-weight: bold; border-bottom: 2px dashed #888; margin-bottom: 10px; padding-bottom: 5px; max-width: 300px; margin-left: auto; margin-right: auto;'>DRIVER</div>", unsafe_allow_html=True)
+            
+            rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
+            for r in rows:
+                cols = st.columns([1, 1, 0.4, 1, 1])
+                seats_in_row = [f"{r}1", f"{r}2", f"{r}3", f"{r}4"]
+                col_indices = [0, 1, 3, 4]
+                
+                # Aisle marker
+                cols[2].markdown("<div style='text-align: center; color: #aaa; margin-top: 10px;'>|</div>", unsafe_allow_html=True)
+                
+                for seat, col_idx in zip(seats_in_row, col_indices):
+                    is_booked = seat in booked_seats
+                    is_selected = (seat in st.session_state.selected_seats)
+                    
+                    if is_booked:
+                        label = f"X {seat}"
+                    elif is_selected:
+                        label = f"● {seat}"
+                    else:
+                        label = f"{seat}"
+                        
+                    btn_type = "primary" if is_selected else "secondary"
+                    
+                    if cols[col_idx].button(
+                        label, 
+                        key=f"seat_{seat}", 
+                        disabled=is_booked, 
+                        type=btn_type,
+                        use_container_width=True
+                    ):
+                        if seat in st.session_state.selected_seats:
+                            st.session_state.selected_seats.remove(seat)
+                        else:
+                            st.session_state.selected_seats.append(seat)
+                        st.rerun()
         
         st.write("")
         if st.button("Back to Buses", use_container_width=True):
@@ -616,6 +528,8 @@ with tab1:
                 with f_col2:
                     payment_status = st.selectbox("Payment", ["Paid", "Unpaid", "Partial"])
                 
+                ticket_format = st.radio("Ticket Format", ["Standard", "Expanded (with seat map)"], horizontal=True)
+                
                 submitted = st.form_submit_button("Confirm Booking", type="primary", use_container_width=True)
                 
                 if submitted:
@@ -651,7 +565,8 @@ with tab1:
                                     seat_number=seat,
                                     travel_date=str(st.session_state.travel_date),
                                     price=price,
-                                    payment_status=payment_status
+                                    payment_status=payment_status,
+                                    ticket_type=ticket_format.split(" ")[0]
                                 )
                                 generated_pdfs.append(pdf_path)
                                 

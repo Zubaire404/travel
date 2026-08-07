@@ -21,7 +21,7 @@ class PDF(FPDF):
         page_num = getattr(self, 'page_no', lambda: 1)()
         self.cell(0, 10, f"Page {page_num}", align="C")
 
-def generate_ticket(booking_id, name, phone, address, bus_name, route, departure_time, seat_number, travel_date, price, payment_status):
+def generate_ticket(booking_id, name, phone, address, bus_name, route, departure_time, seat_number, travel_date, price, payment_status, ticket_type="Standard"):
     # Ensure Tickets directory exists
     if not os.path.exists("Tickets"):
         os.makedirs("Tickets")
@@ -112,7 +112,51 @@ def generate_ticket(booking_id, name, phone, address, bus_name, route, departure
     pdf.cell(150, 8, payment_status.upper(), border="R, B", ln=1)
     pdf.set_text_color(0, 0, 0) # reset
     
-    pdf.ln(20)
+    if ticket_type.lower() == "expanded":
+        pdf.add_page()
+        pdf.set_font("helvetica", "B", 14)
+        pdf.cell(0, 10, "Seat Map", align="C", ln=1)
+        pdf.ln(5)
+        
+        # Bus Map parameters
+        start_x = 60
+        start_y = pdf.get_y()
+        seat_w = 15
+        seat_h = 15
+        gap = 5
+        aisle = 20
+        
+        pdf.set_font("helvetica", "", 10)
+        
+        # Draw front of bus
+        pdf.set_xy(start_x, start_y)
+        pdf.cell(seat_w*2 + aisle + seat_w*2 + gap*3, 10, "DRIVER", border=1, align="C")
+        
+        start_y += 15
+        rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
+        for i, r in enumerate(rows):
+            for j, col in enumerate([1, 2, 3, 4]):
+                s_num = f"{r}{col}"
+                # Calculate X position
+                if j < 2:
+                    curr_x = start_x + j * (seat_w + gap)
+                else:
+                    curr_x = start_x + 2 * (seat_w + gap) - gap + aisle + (j - 2) * (seat_w + gap)
+                
+                curr_y = start_y + i * (seat_h + gap)
+                
+                pdf.set_xy(curr_x, curr_y)
+                if s_num == seat_number:
+                    pdf.set_fill_color(33, 150, 243) # Blue selected
+                    pdf.set_text_color(255, 255, 255)
+                    pdf.cell(seat_w, seat_h, s_num, border=1, fill=True, align="C")
+                    pdf.set_text_color(0, 0, 0)
+                else:
+                    pdf.cell(seat_w, seat_h, s_num, border=1, align="C")
+        
+        pdf.ln((len(rows) * (seat_h + gap)) + 10)
+    
+    pdf.ln(10)
     pdf.set_font("helvetica", "I", 10)
     pdf.cell(0, 10, "Thank you for booking with us! Have a safe journey.", align="C", ln=1)
     
