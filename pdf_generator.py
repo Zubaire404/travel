@@ -38,130 +38,138 @@ def generate_ticket(booking_id, name, phone, address, bus_name, route, departure
     # Ticket & Date Info
     pdf.set_font("helvetica", "B", 12)
     ticket_str = f"TKT{booking_id}"
-    pdf.cell(100, 8, f"Ticket ID: {ticket_str}")
+    pdf.cell(80, 8, f"Ticket ID: {ticket_str}")
     pdf.set_font("helvetica", "", 12)
-    pdf.cell(90, 8, f"Issue Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}", align="R", ln=1)
+    pdf.cell(110, 8, f"Issue Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}", align="R", ln=1)
     pdf.ln(5)
+
+    # Box width for details
+    box_w = 90
+    label_w = 35
 
     # Customer Details Box
     pdf.set_font("helvetica", "B", 12)
     pdf.set_fill_color(240, 240, 240)
-    pdf.cell(0, 8, " Passenger Details", border=1, fill=True, ln=1)
+    pdf.cell(label_w + box_w, 8, " Passenger Details", border=1, fill=True, ln=1)
     
     pdf.set_font("helvetica", "", 11)
-    pdf.cell(40, 8, "Name:", border="L")
-    pdf.cell(150, 8, name, border="R", ln=1)
+    pdf.cell(label_w, 8, "Name:", border="L")
+    pdf.cell(box_w, 8, name, border="R", ln=1)
     
-    pdf.cell(40, 8, "Phone Number:", border="L")
-    pdf.cell(150, 8, phone, border="R", ln=1)
+    pdf.cell(label_w, 8, "Phone:", border="L")
+    pdf.cell(box_w, 8, phone, border="R", ln=1)
     
-    pdf.cell(40, 8, "Address:", border="L, B")
-    pdf.cell(150, 8, address if address else "N/A", border="R, B", ln=1)
+    pdf.cell(label_w, 8, "Address:", border="L, B")
+    pdf.cell(box_w, 8, address if address else "N/A", border="R, B", ln=1)
     pdf.ln(5)
 
     # Travel Details Box
     pdf.set_font("helvetica", "B", 12)
-    pdf.cell(0, 8, " Travel Details", border=1, fill=True, ln=1)
+    pdf.cell(label_w + box_w, 8, " Travel Details", border=1, fill=True, ln=1)
     
     pdf.set_font("helvetica", "", 11)
-    pdf.cell(40, 8, "Bus Operator:", border="L")
+    pdf.cell(label_w, 8, "Bus:", border="L")
     pdf.set_font("helvetica", "B", 11)
-    pdf.cell(150, 8, bus_name, border="R", ln=1)
+    pdf.cell(box_w, 8, bus_name, border="R", ln=1)
 
     pdf.set_font("helvetica", "", 11)
-    pdf.cell(40, 8, "Route:", border="L")
+    pdf.cell(label_w, 8, "Route:", border="L")
     pdf.set_font("helvetica", "B", 11)
-    pdf.cell(150, 8, route, border="R", ln=1)
+    pdf.cell(box_w, 8, route, border="R", ln=1)
 
     pdf.set_font("helvetica", "", 11)
-    pdf.cell(40, 8, "Seat Number:", border="L")
+    pdf.cell(label_w, 8, "Seat:", border="L")
     pdf.set_font("helvetica", "B", 11)
-    pdf.set_text_color(220, 0, 0) # Highlight seat
-    pdf.cell(150, 8, seat_number, border="R", ln=1)
+    pdf.set_text_color(220, 0, 0)
+    pdf.cell(box_w, 8, seat_number, border="R", ln=1)
     pdf.set_text_color(0, 0, 0)
     
     pdf.set_font("helvetica", "", 11)
-    pdf.cell(40, 8, "Dep. Time:", border="L")
+    pdf.cell(label_w, 8, "Time:", border="L")
     pdf.set_font("helvetica", "B", 11)
-    pdf.cell(150, 8, f"{travel_date} | {departure_time}", border="R", ln=1)
-
-    pdf.set_font("helvetica", "", 11)
-    pdf.cell(40, 8, "", border="L, B") # Empty bottom border line
-    pdf.cell(150, 8, "", border="R, B", ln=1)
+    pdf.cell(box_w, 8, f"{travel_date} | {departure_time}", border="R", ln=1)
+    
+    pdf.cell(label_w, 8, "", border="L, B")
+    pdf.cell(box_w, 8, "", border="R, B", ln=1)
     pdf.ln(5)
 
     # Payment Details Box
     pdf.set_font("helvetica", "B", 12)
-    pdf.cell(0, 8, " Payment Details", border=1, fill=True, ln=1)
+    pdf.cell(label_w + box_w, 8, " Payment Details", border=1, fill=True, ln=1)
     
     pdf.set_font("helvetica", "", 11)
-    pdf.cell(40, 8, "Total Price:", border="L")
-    pdf.cell(150, 8, f"BDT {price}", border="R", ln=1)
+    pdf.cell(label_w, 8, "Price:", border="L")
+    pdf.cell(box_w, 8, f"BDT {price}", border="R", ln=1)
     
-    pdf.cell(40, 8, "Payment Status:", border="L, B")
-    
-    # Color code status
+    pdf.cell(label_w, 8, "Status:", border="L, B")
     if payment_status.lower() == "paid":
         pdf.set_text_color(0, 150, 0)
     elif payment_status.lower() == "unpaid":
         pdf.set_text_color(255, 0, 0)
     else:
         pdf.set_text_color(200, 100, 0)
-        
     pdf.set_font("helvetica", "B", 11)
-    pdf.cell(150, 8, payment_status.upper(), border="R, B", ln=1)
-    pdf.set_text_color(0, 0, 0) # reset
+    pdf.cell(box_w, 8, payment_status.upper(), border="R, B", ln=1)
+    pdf.set_text_color(0, 0, 0)
     
+    # Store current Y for the Verified box later
+    current_y = pdf.get_y()
+    
+    # Draw Seat Map if Expanded
     if ticket_type.lower() == "expanded":
-        pdf.add_page()
-        pdf.set_font("helvetica", "B", 14)
-        pdf.cell(0, 10, "Seat Map", align="C", ln=1)
-        pdf.ln(5)
+        start_x = 145
+        start_y = 50
+        seat_w = 9
+        seat_h = 9
+        gap = 3
+        aisle = 12
         
-        # Bus Map parameters
-        start_x = 60
-        start_y = pdf.get_y()
-        seat_w = 15
-        seat_h = 15
-        gap = 5
-        aisle = 20
-        
-        pdf.set_font("helvetica", "", 10)
-        
-        # Draw front of bus
+        pdf.set_font("helvetica", "B", 10)
         pdf.set_xy(start_x, start_y)
-        pdf.cell(seat_w*2 + aisle + seat_w*2 + gap*3, 10, "DRIVER", border=1, align="C")
+        pdf.cell(seat_w*2 + aisle + seat_w*2 + gap*3, 8, "SEAT MAP", align="C")
         
-        start_y += 15
+        start_y += 10
+        pdf.set_xy(start_x, start_y)
+        pdf.set_font("helvetica", "", 9)
+        pdf.cell(seat_w*2 + aisle + seat_w*2 + gap*3, 8, "DRIVER", border=1, align="C")
+        
+        start_y += 12
         rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
         for i, r in enumerate(rows):
             for j, col in enumerate([1, 2, 3, 4]):
                 s_num = f"{r}{col}"
-                # Calculate X position
                 if j < 2:
                     curr_x = start_x + j * (seat_w + gap)
                 else:
                     curr_x = start_x + 2 * (seat_w + gap) - gap + aisle + (j - 2) * (seat_w + gap)
                 
                 curr_y = start_y + i * (seat_h + gap)
-                
                 pdf.set_xy(curr_x, curr_y)
+                
                 if s_num == seat_number:
-                    pdf.set_fill_color(33, 150, 243) # Blue selected
+                    pdf.set_fill_color(33, 150, 243)
                     pdf.set_text_color(255, 255, 255)
                     pdf.cell(seat_w, seat_h, s_num, border=1, fill=True, align="C")
                     pdf.set_text_color(0, 0, 0)
                 else:
                     pdf.cell(seat_w, seat_h, s_num, border=1, align="C")
-        
-        # Move cursor below the drawn bus map (last seat Y + seat_h + some padding)
-        pdf.set_y(start_y + (len(rows) * (seat_h + gap)) + 10)
-    else:
-        pdf.ln(20)
+                    
+        # Update Y to below the map if it extends lower than the ticket details
+        map_bottom = start_y + (len(rows) * (seat_h + gap))
+        if map_bottom > current_y:
+            current_y = map_bottom
+
+    # Draw Verified Cell
+    pdf.set_y(current_y + 15)
+    pdf.set_font("helvetica", "B", 14)
+    pdf.set_text_color(34, 197, 94) # Green
+    pdf.cell(60, 15, "VERIFIED TICKET", border=1, align="C")
+    pdf.set_text_color(0, 0, 0)
     
+    pdf.set_y(current_y + 35)
     pdf.set_font("helvetica", "I", 10)
     pdf.cell(0, 10, "Thank you for booking with us! Have a safe journey.", align="C", ln=1)
-    
+
     # Save PDF
     safe_name = name.replace(" ", "_")
     filename = f"Tickets/{ticket_str}_{safe_name}.pdf"
