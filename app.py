@@ -227,30 +227,7 @@ st.markdown("""
         padding: 0.75rem;
         border: 1px solid rgba(128,128,128,0.1);
     }
-    
-    /* 
-     * SEAT GRID MOBILE HACK
-     * Target the specific container using the .seat-marker class.
-     * Overrides Streamlit's aggressive mobile flex-wrap.
-     */
-    div[data-testid="stVerticalBlock"]:has(.seat-marker) div[data-testid="stHorizontalBlock"] {
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        gap: 0.2rem !important;
-    }
-    div[data-testid="stVerticalBlock"]:has(.seat-marker) div[data-testid="column"] {
-        width: 100% !important;
-        min-width: 0 !important;
-        flex: 1 1 0 !important;
-    }
-    div[data-testid="stVerticalBlock"]:has(.seat-marker) div[data-testid="column"]:nth-child(3) {
-        flex: 0.4 1 0 !important; /* Aisle */
-    }
-    div[data-testid="stVerticalBlock"]:has(.seat-marker) button {
-        padding: 0 !important;
-        font-size: 0.8rem !important;
-        min-height: 2.5rem !important;
-    }
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -468,46 +445,63 @@ with tab1:
         
         st.markdown(f"**{sched['bus_name']}** | {st.session_state.selected_route} | {sched['departure_time']}")
         
-        # Seat Grid inside a targeted container
-        with st.container():
-            st.markdown('<div class="seat-marker"></div>', unsafe_allow_html=True)
-            st.caption("[ ] Available &nbsp;&nbsp;|&nbsp;&nbsp; [X] Booked &nbsp;&nbsp;|&nbsp;&nbsp; [●] Selected")
-            st.markdown("<div style='text-align: center; font-weight: bold; border-bottom: 2px dashed #888; margin-bottom: 10px; padding-bottom: 5px; max-width: 300px; margin-left: auto; margin-right: auto;'>DRIVER</div>", unsafe_allow_html=True)
+        # Build all seat info
+        rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
+        all_seats = [f"{r}{c}" for r in rows for c in [1, 2, 3, 4]]
+        available_seats = [s for s in all_seats if s not in booked_seats]
+        
+        # Seat selection via multiselect (works perfectly on mobile)
+        selected = st.multiselect(
+            "Tap to select seats",
+            options=available_seats,
+            default=[s for s in st.session_state.selected_seats if s in available_seats],
+            key="seat_multiselect"
+        )
+        st.session_state.selected_seats = selected
+        
+        # --- Pure HTML Bus Visual ---
+        seat_html_rows = ""
+        for r in rows:
+            cells = ""
+            for j, col in enumerate([1, 2, 3, 4]):
+                s = f"{r}{col}"
+                if s in booked_seats:
+                    cls = "seat booked"
+                    label = f"X"
+                elif s in st.session_state.selected_seats:
+                    cls = "seat selected"
+                    label = f"●"
+                else:
+                    cls = "seat available"
+                    label = s
+                
+                cells += f'<div class="{cls}">{label}</div>'
+                if j == 1:
+                    cells += '<div class="aisle"></div>'
             
-            rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
-            for r in rows:
-                cols = st.columns([1, 1, 0.4, 1, 1])
-                seats_in_row = [f"{r}1", f"{r}2", f"{r}3", f"{r}4"]
-                col_indices = [0, 1, 3, 4]
-                
-                # Aisle marker
-                cols[2].markdown("<div style='text-align: center; color: #aaa; margin-top: 10px;'>|</div>", unsafe_allow_html=True)
-                
-                for seat, col_idx in zip(seats_in_row, col_indices):
-                    is_booked = seat in booked_seats
-                    is_selected = (seat in st.session_state.selected_seats)
-                    
-                    if is_booked:
-                        label = f"X {seat}"
-                    elif is_selected:
-                        label = f"● {seat}"
-                    else:
-                        label = f"{seat}"
-                        
-                    btn_type = "primary" if is_selected else "secondary"
-                    
-                    if cols[col_idx].button(
-                        label, 
-                        key=f"seat_{seat}", 
-                        disabled=is_booked, 
-                        type=btn_type,
-                        use_container_width=True
-                    ):
-                        if seat in st.session_state.selected_seats:
-                            st.session_state.selected_seats.remove(seat)
-                        else:
-                            st.session_state.selected_seats.append(seat)
-                        st.rerun()
+            seat_html_rows += f'<div class="seat-row">{cells}</div>'
+        
+        bus_html = f"""
+        <div style="max-width: 280px; margin: 10px auto; border: 2px solid #555; border-radius: 20px 20px 10px 10px; padding: 10px 15px 15px 15px; background: rgba(128,128,128,0.05);">
+            <div style="text-align: center; font-weight: 700; font-size: 0.85rem; padding: 6px 0; border-bottom: 2px dashed #888; margin-bottom: 8px;">🚌 DRIVER</div>
+            <style>
+                .seat-row {{ display: flex; justify-content: center; gap: 6px; margin-bottom: 5px; }}
+                .seat {{ width: 42px; height: 36px; display: flex; align-items: center; justify-content: center;
+                         border-radius: 6px; font-size: 0.75rem; font-weight: 600; border: 1.5px solid #666; }}
+                .seat.available {{ background: rgba(128,128,128,0.1); color: var(--text-color, #ccc); }}
+                .seat.booked {{ background: rgba(239,68,68,0.2); color: #ef4444; border-color: #ef4444; }}
+                .seat.selected {{ background: rgba(37,99,235,0.8); color: #fff; border-color: #2563eb; }}
+                .aisle {{ width: 20px; }}
+            </style>
+            {seat_html_rows}
+            <div style="display: flex; justify-content: center; gap: 12px; margin-top: 10px; font-size: 0.7rem; opacity: 0.8;">
+                <span>⬜ Available</span>
+                <span style="color: #ef4444;">❌ Booked</span>
+                <span style="color: #2563eb;">🔵 Selected</span>
+            </div>
+        </div>
+        """
+        st.markdown(bus_html, unsafe_allow_html=True)
         
         st.write("")
         if st.button("Back to Buses", use_container_width=True):
