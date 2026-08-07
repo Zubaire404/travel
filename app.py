@@ -533,11 +533,14 @@ with tab1:
                 submitted = st.form_submit_button("Confirm Booking", type="primary", use_container_width=True)
                 
                 if submitted:
-                    if not phone.strip() or not name.strip() or price <= 0:
+                    clean_phone = phone.strip()
+                    if not clean_phone or not name.strip() or price <= 0:
                         st.error("Please fill Phone, Name, and Fare.")
+                    elif len(clean_phone) != 11 or not clean_phone.isdigit():
+                        st.error("Please enter a valid 11-digit phone number (e.g. 01712345678).")
                     else:
                         try:
-                            database.save_customer(phone, name, address)
+                            database.save_customer(clean_phone, name, address)
                             
                             generated_pdfs = []
                             booked_ids = []
@@ -545,7 +548,7 @@ with tab1:
                             
                             for seat in st.session_state.selected_seats:
                                 booking_id = database.save_booking(
-                                    phone=phone,
+                                    phone=clean_phone,
                                     schedule_id=sched['schedule_id'],
                                     seat_number=seat,
                                     travel_date=str(st.session_state.travel_date),
@@ -571,7 +574,7 @@ with tab1:
                                 generated_pdfs.append(pdf_path)
                                 
                                 sms_res = sms_service.send_booking_sms(
-                                    phone_number=phone,
+                                    phone_number=clean_phone,
                                     customer_name=name,
                                     ticket_id=booking_id,
                                     bus_name=sched['bus_name'],
@@ -586,7 +589,7 @@ with tab1:
                             
                             if not sms_token:
                                 st.session_state.sms_logs.append({
-                                    "phone": phone,
+                                    "phone": clean_phone,
                                     "message": last_sms_text
                                 })
                             
@@ -594,11 +597,14 @@ with tab1:
                             st.success(f"Booked! Tickets: {ids_str}")
                             
                             if sms_res.get("mock"):
-                                st.info(f"SMS simulated to {phone}")
+                                st.info(f"SMS simulated to {clean_phone}")
                             elif sms_res.get("success"):
-                                st.success(f"SMS sent to {phone}")
+                                st.success(f"SMS sent to {clean_phone}")
                             else:
                                 st.warning(f"SMS failed: {sms_res.get('message')}")
+                                
+                            st.markdown("#### SMS Preview")
+                            st.info(last_sms_text)
                                 
                             st.session_state.latest_pdfs = generated_pdfs
                             st.session_state.selected_seats = []
@@ -651,6 +657,15 @@ with tab1:
                             key=f"dl_btn_{idx}",
                             use_container_width=True
                         )
+                        
+                        import base64
+                        b64 = base64.b64encode(pdf_bytes).decode('utf-8')
+                        st.markdown(f"""
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                            <a href="data:application/pdf;base64,{b64}" target="_blank" style="flex: 1; text-align: center; padding: 10px; background-color: var(--secondary-background-color); color: var(--text-color); border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; text-decoration: none; font-weight: 600;">🖨️ Print / Fullscreen</a>
+                        </div>
+                        <iframe src="data:application/pdf;base64,{b64}" width="100%" height="400px" style="border:1px solid rgba(128,128,128,0.3); border-radius:8px; margin-bottom: 20px;"></iframe>
+                        """, unsafe_allow_html=True)
 
 # ==========================================
 #   TAB 2: BOOKING HISTORY
