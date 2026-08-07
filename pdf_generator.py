@@ -154,9 +154,11 @@ def generate_ticket(booking_id, name, phone, address, bus_name, route, departure
                 else:
                     pdf.cell(seat_w, seat_h, s_num, border=1, align="C")
         
-        pdf.ln((len(rows) * (seat_h + gap)) + 10)
+        # Move cursor below the drawn bus map (last seat Y + seat_h + some padding)
+        pdf.set_y(start_y + (len(rows) * (seat_h + gap)) + 10)
+    else:
+        pdf.ln(20)
     
-    pdf.ln(10)
     pdf.set_font("helvetica", "I", 10)
     pdf.cell(0, 10, "Thank you for booking with us! Have a safe journey.", align="C", ln=1)
     
