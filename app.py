@@ -227,6 +227,21 @@ st.markdown("""
         padding: 0.75rem;
         border: 1px solid rgba(128,128,128,0.1);
     }
+    
+    /* 
+     * SEAT GRID MOBILE HACK
+     * Target any horizontal block that has exactly 5 columns (the seat grid: 1, 1, 0.4, 1, 1).
+     * This prevents Streamlit from stacking the seat columns vertically on mobile!
+     */
+    div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(5)) {
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+    }
+    div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(5)) > div[data-testid="column"] {
+        min-width: 0 !important;
+        width: auto !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
