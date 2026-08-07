@@ -230,17 +230,26 @@ st.markdown("""
     
     /* 
      * SEAT GRID MOBILE HACK
-     * Target any horizontal block that has exactly 5 columns (the seat grid: 1, 1, 0.4, 1, 1).
-     * This prevents Streamlit from stacking the seat columns vertically on mobile!
+     * Target the specific container using the .seat-marker class.
+     * Overrides Streamlit's aggressive mobile flex-wrap.
      */
-    div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(5)) {
+    div[data-testid="stVerticalBlock"]:has(.seat-marker) div[data-testid="stHorizontalBlock"] {
         flex-direction: row !important;
         flex-wrap: nowrap !important;
-        align-items: center !important;
+        gap: 0.2rem !important;
     }
-    div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(5)) > div[data-testid="column"] {
+    div[data-testid="stVerticalBlock"]:has(.seat-marker) div[data-testid="column"] {
+        width: 100% !important;
         min-width: 0 !important;
-        width: auto !important;
+        flex: 1 1 0 !important;
+    }
+    div[data-testid="stVerticalBlock"]:has(.seat-marker) div[data-testid="column"]:nth-child(3) {
+        flex: 0.4 1 0 !important; /* Aisle */
+    }
+    div[data-testid="stVerticalBlock"]:has(.seat-marker) button {
+        padding: 0 !important;
+        font-size: 0.8rem !important;
+        min-height: 2.5rem !important;
     }
 </style>
 """, unsafe_allow_html=True)
